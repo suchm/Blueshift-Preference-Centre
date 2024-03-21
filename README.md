@@ -1,1 +1,2 @@
 # Blueshift-Preference-Centre
+This repository provides code to build a preference centre in Blueshift. The code uses liquid script to dynamically pull in the preferences as well as html, CSS and javascript for the page layout and functionality.

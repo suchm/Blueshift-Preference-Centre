@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/cosmo/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<section id="loader">
+<p><i class="fa fa-spinner fa-pulse fa-3x fa-fw"><span style="display: none;">.</span></i> <span>Loading preferences...</span></p>
+</section>
+<body class="container">
+<div class="row mt-2 mb-1">
+  <div class="col">
+    <header>
+      <!-- <img src="https://logo.png" class="logo align-middle d-inline-block"> -->
+      <h1 class="bd-title align-middle d-inline-block"><strong>Preference Centre</strong></h1>
+    </header>              
+    <p>On this page you can manage all of your free subscriptions and the marketing you receive from us via email, post and phone, without any fuss. We’ve tried to make it as easy as possible for you to navigate.</p>                 
+  </div>
+</div>
+<div class="card mt-2 mb-3">
+  <div class="card-body" style="font-size: 18px; text-align: center;">
+    Your email: <span style="font-weight:600;">{{ user.email}}</span>
+  </div>
+</div>
+  
+    {% if sp == "fti" %}
+      <!-- This is FTI specific content. -->
+    {% endif %}
+  
+{% if was_updated %}
+  <div class="alert alert-success mt-3">Thanks for updating your preferences.</div>
+{% endif %}
+
+{% if user.unsubscribed %}
+  {% if was_updated %}
+    {% form %}
+  
+  <input type="hidden" name="user[extended_attributes][customer_active_lists]" value="{{user.extended_attributes.customer_active_lists}}" />
+<input type="hidden" name="user[extended_attributes][customer_active_subscriptions]" value="{{user.extended_attributes.customer_active_subscriptions}}" />
+<input type="hidden" name="user[extended_attributes][FREE1]" />
+<input type="hidden" name="user[extended_attributes][FREE2]" />
+<input type="hidden" name="user[extended_attributes][ELETTER1_DAILY]" />
+<input type="hidden" name="user[extended_attributes][ELETTER1_WKND]" />
+<input type="hidden" name="user[extended_attributes][ELETTER1_OTHER]" />
+<input type="hidden" name="user[extended_attributes][ELETTER2_DAILY]" />
+<input type="hidden" name="user[extended_attributes][ELETTER2_WKND]" />
+<input type="hidden" name="user[extended_attributes][ELETTER2_OTHER]" />
+<input type="hidden" name="user[extended_attributes][LIST1_FREE]" />
+<input type="hidden" name="user[extended_attributes][LIST1_OTHER]" />
+<input type="hidden" name="user[extended_attributes][LIST2_FREE]" />
+<input type="hidden" name="user[extended_attributes][LIST2_OTHER]" />
+<input type="hidden" name="user[extended_attributes][LIST3_FREE]" />
+<input type="hidden" name="user[extended_attributes][LIST3_OTHER]" />
+  
+      <div class="form-group alert alert-info mb-3">
+        <label for="exampleFormControlTextarea1">We're sorry to see you go! Why did you unsubscribe?</label>
+        <textarea class="form-control mb-2" id="exampleFormControlTextarea1" rows="3" name="user[extended_attributes][unsubscribe_reason]"></textarea>
+        <button class="btn btn-secondary">Submit</button>
+      </div>
+    {% endform %}
+  {% endif %}
+  {% form %}
+    <!-- <input name="user[unsubscribed]" type="hidden" value="false"/>
+    <div class="mb-1">You are currently unsubscribed. Click below to resubscribe.</div>
+    <button class="btn btn-primary btn-lg">Resubscribe</button> -->
+  {% endform %}
+{% endif %}
+
+{% assign eLetters = "ELETTER1,ELETTER2" | split: ',' %}
+{% assign eLetterNames = "Eletter 1, Eletter 2" | split: ',' %}
+{% assign eLetterLogos = "https://eletter1-logo.jpg, https://eletter2-logo.jpg" | split: ',' %}
+
+{% assign pubCodes = "LIST1,LIST2,LIST3" | split: ',' %}
+{% assign pubNames = "List 1, List 2, List 3" | split: ',' %}
+{% assign pubLogos = "https://list1-logo.jpg, https://list2-logo.jpg, https://list3-logo.jpg" | split: ',' %}
+
+{% assign freeEvents = "FREE1,FREE2"  | split: ',' %}
+{% assign freeEventNames = "Free 1, Free 2" | split: ',' %}
+{% assign freeEventLogos = "https://free1-logo.jpg, https://free2-logo.jpg" | split: ',' %}
+
+{% assign activeLists = user.extended_attributes.customer_active_lists %}
+{% assign activeSubscriptions = user.extended_attributes.customer_active_subscriptions %}
+{% assign emailConsent = user.extended_attributes.marketing_consent_email  %}
+{% assign postConsent = user.extended_attributes.marketing_consent_post  %}
+{% assign phoneConsent = user.extended_attributes.marketing_consent_phone  %}
+{% assign thirdpartyConsent = user.extended_attributes.marketing_consent_thirdparty  %}
+{% assign activeEmailConsent = "false"  %}
+{% assign activePostConsent = "false"  %}
+{% assign activePhoneConsent = "false"  %}
+{% assign activeThirdpartyConsent = "false"  %}
+
+{% form %}
+  
+<div class="mb-4">
+  
+  <div class="preferences email" data-type="email">
+    <h2>Managing communication via email</h2>
+    <div class="pl-2 pr-2 pt-3 pb-3">
+      <!-- Start Your free e-letter subscriptions -->
+      <!-- Check if user is subscribed to any e-letter lists -->
+          <div class="preference-section">
+              <h3>Your free e-letter subscriptions</h3> 
+              <div class="panel">        
+                <p>Additional copy added here</p>
+              </div>
+              <div class="form-group">
+                  {% assign eLetterPos = 0 %}
+                  {% for eletterCode in eLetters %}
+                      {% assign eletterCodeTrim = eletterCode | strip %}
+                      <!-- Display free e-letter options -->
+                      {% if eletterCodeTrim == 'ELETTER1' or eletterCodeTrim == 'ELETTER2' and activeSubscriptions.size > 0 %}
+                        {% assign eLetterDaily = eletterCodeTrim | append: "_DAILY" %}
+                        {% assign eLetterWknd = eletterCodeTrim | append: "_WKND" %}
+                        {% assign eLetterOther = eletterCodeTrim | append: "_OTHER" %}
+                        <!-- Check for eLetter DAILY -->
+                          {% assign eLetterDailyConsent = user.extended_attributes[eLetterDaily]  %}
+                          <!-- If marketing_consent_post is set to false uncheck attribute -->
+                          {% if emailConsent == "false" %}
+                            {% assign checkeLetterDailyConsent = "false"  %}
+                          <!-- If marketing_consent_post_services is set to true check attribute -->
+                          {% elsif eLetterDailyConsent == "true" %}
+                            {% assign checkeLetterDailyConsent = "true"  %}
+                          <!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+                          {% elsif eLetterDailyConsent != "true" and eLetterDailyConsent != "false"  %}
+                            {% if activeLists contains '{Do_not_promote_list_code}' %} <!-- If on do not promote list, then set to false -->
+                              {% assign checkeLetterDailyConsent = "false"  %} 
+                            {% elsif activeLists contains eletterCodeTrim %} <!-- If active on eletter list, then set to true -->
+                              {% assign checkeLetterDailyConsent = "true"  %} 
+                            {% else %} <!-- If not active on eletter list, then set to false -->
+                              {% assign checkeLetterDailyConsent = "false"  %} 
+                            {% endif %}
+                          <!-- By default uncheck attribute -->
+                          {% else %}
+                            {% assign checkeLetterDailyConsent = "false"  %}
+                          {% endif %}
+
+                          {% assign eLetterDailyConsentAttr = eletterCodeTrim | append: "_DAILY"  %}{% if checkeLetterDailyConsent == "false" %}{% assign eLetterDailyConsentAttr = eletterCodeTrim | append: "_DAILY_OFF"  %}{% else %}{% assign activeEmailConsent = "true"  %}{% endif %}
+
+                          <!-- Check for eLetter WKND -->
+                          {% assign eLetterWkndConsent = user.extended_attributes[eLetterWknd]  %}
+                          <!-- If marketing_consent_post is set to false uncheck attribute -->
+                          {% if emailConsent == "false" %}
+                            {% assign checkeLetterWkndConsent = "false"  %}
+                          <!-- If marketing_consent_post_services is set to true check attribute -->
+                          {% elsif eLetterWkndConsent == "true" %}
+                            {% assign checkeLetterWkndConsent = "true"  %}
+                          <!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+                          {% elsif eLetterWkndConsent != "true" and eLetterWkndConsent != "false" %}
+                            {% if activeLists contains '{Do_not_promote_list_code}' %} <!-- If on do not promote list, then set to false -->
+                              {% assign checkeLetterWkndConsent = "false"  %} 
+                            {% elsif activeLists contains eletterCodeTrim %} <!-- If active on eletter list, then set to true -->
+                              {% assign checkeLetterWkndConsent = "true"  %} 
+                            {% else %} <!-- If not active on eletter list, then set to false -->
+                              {% assign checkeLetterWkndConsent = "false"  %} 
+                            {% endif %}
+                          <!-- By default uncheck attribute -->
+                          {% else %}
+                            {% assign checkeLetterWkndConsent = "false"  %}
+                          {% endif %}
+
+                          {% assign eLetterWkndConsentAttr = eletterCodeTrim | append: "_WKND"  %}{% if checkeLetterWkndConsent == "false" %}{% assign eLetterWkndConsentAttr = eletterCodeTrim | append: "_WKND_OFF"  %}{% else %}{% assign activeEmailConsent = "true"  %}{% endif %}
+
+                          <!-- Check for eLetter OTHER -->
+                          {% assign eLetterOtherConsent = user.extended_attributes[eLetterOther]  %}
+                          <!-- If marketing_consent_post is set to false uncheck attribute -->
+                          {% if emailConsent == "false" %}
+                            {% assign checkeLetterOtherConsent = "false"  %}
+                          <!-- If marketing_consent_post_services is set to true check attribute -->
+                          {% elsif eLetterOtherConsent == "true" %}
+                            {% assign checkeLetterOtherConsent = "true"  %}
+                          <!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+                          {% elsif eLetterOtherConsent != "true" and eLetterOtherConsent != "false" %}
+                            {% if activeLists contains '{Do_not_promote_list_code}' %} <!-- If on do not promote list, then set to false -->
+                              {% assign checkeLetterOtherConsent = "false"  %} 
+                            {% elsif activeLists contains eletterCodeTrim %} <!-- If active on eletter list, then set to true -->
+                              {% assign checkeLetterOtherConsent = "true"  %} 
+                            {% else %} <!-- If not active on eletter list, then set to false -->
+                              {% assign checkeLetterOtherConsent = "false"  %} 
+                            {% endif %}
+                          <!-- By default uncheck attribute -->
+                          {% else %}
+                            {% assign checkeLetterOtherConsent = "false"  %}
+                          {% endif %}
+
+                          {% assign eLetterOtherConsentAttr = eletterCodeTrim | append: "_OTHER"  %}{% if checkeLetterOtherConsent == "false" %}{% assign eLetterOtherConsentAttr = eletterCodeTrim | append: "_OTHER_OFF"  %}{% else %}{% assign activeEmailConsent = "true"  %}{% endif %}
+
+                        <div class="pub-wrap">
+                          <div class="pub-image border">
+                            <img src="{{ eLetterLogos[eLetterPos] }}" alt="{{ eLetterNames[eLetterPos] }}">
+                          </div>
+                          <div class="pub-inner">
+                            <div class="container">
+                              <div class="row">
+                                <div class="col-sm-9 col-md-10 pub-label">
+                                  <span>I'd like to receive the daily issue</span>
+                                </div>
+                                <div class="col-sm-3 col-md-2">
+                                  <div class="custom-control custom-switch">
+                                    <input
+                                      type="checkbox"
+                                      class="custom-control-input"
+                                      id="{{ eLetterDaily }}"
+                                      value="true"
+                                      {% if checkeLetterDailyConsent == "true" %}checked="checked"{% endif %}
+                                           name="user[extended_attributes][{{eLetterDailyConsentAttr}}]"
+
+                                      >                                    
+                                          <label
+                                        class="custom-control-label"
+                                        for="{{ eLetterDaily }}"
+                                      >{% if checkeLetterDailyConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                                      {% if checkeLetterDailyConsent == "false" %}
+                                        <input type="hidden" class="false-control" value="false" name="user[extended_attributes][{{eLetterDaily}}]">
+                                      {% endif %}
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-sm-9 col-md-10 pub-label">
+                                  <span>I'd like to receive the weekend edition</span>
+                                </div>
+                                <div class="col-sm-3 col-md-2">
+                                  <div class="custom-control custom-switch">
+                                    <input
+                                      type="checkbox"
+                                      class="custom-control-input"
+                                      id="{{ eLetterWknd }}"
+                                      value="true"
+                                      {% if checkeLetterWkndConsent == "true" %}checked="checked"{% endif %}
+                                           name="user[extended_attributes][{{eLetterWkndConsentAttr}}]"
+                                      >
+                                          <label
+                                        class="custom-control-label"
+                                        for="{{ eLetterWknd }}"
+                                      >{% if checkeLetterWkndConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                                      {% if checkeLetterWkndConsent == "false" %}
+                                        <input type="hidden" class="false-control" value="false" name="user[extended_attributes][{{eLetterWknd}}]">
+                                      {% endif %}
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="row">
+                                <div class="col-sm-9 col-md-10 pub-label">
+                                  <span>I'd like to receive marketing about other events via this eletter</span>
+                                </div>
+                                <div class="col-sm-3 col-md-2">
+                                  <div class="custom-control custom-switch">
+                                    <input
+                                      type="checkbox"
+                                      class="custom-control-input"
+                                      id="{{ eLetterOther }}"
+                                      value="true"
+                                      {% if checkeLetterOtherConsent == "true" %}checked="checked"{% endif %}
+                                           name="user[extended_attributes][{{eLetterOtherConsentAttr}}]"
+                                      >
+                                          <label
+                                        class="custom-control-label"
+                                        for="{{ eLetterOther }}"
+                                      >{% if checkeLetterOtherConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                                      {% if checkeLetterOtherConsent == "false" %}
+                                        <input type="hidden" class="false-control" value="false" name="user[extended_attributes][{{eLetterOther}}]">
+                                      {% endif %}
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div><!-- end of pub-wrap -->
+                        {% endif %}
+                      {% assign eLetterPos = eLetterPos | plus: 1 %}
+                  {% endfor %}
+              </div><!-- end of form-group -->
+          </div><!-- end of preference-section -->
+      <!-- End Your free e-letter subscriptions -->
+
+      <!-- Start Your Subscriptions -->
+      {% if user.extended_attributes.customer_active_subscriptions.size > 0 %}
+          <div class="preference-section">
+              <h3>Your subscriptions</h3>   
+              <div class="panel">       
+                <p>Add additional copy here</p>
+              </div>
+              <div class="form-group">
+                  {% assign pubCodePos = 0 %}
+                  {% for pub in pubCodes %}
+                        {% assign pubStripped = pub | strip %}
+                        {% if activeSubscriptions contains pubStripped %}
+                          {% assign pubFree = pubStripped | append: "_FREE" %}
+                          {% assign pubOther = pubStripped | append: "_OTHER" %}
+                          <!-- Check for FREE pubs -->
+                          {% assign pubFreeConsent = user.extended_attributes[pubFree]  %}
+                          <!-- If marketing_consent_post is set to false uncheck attribute -->
+                          {% if emailConsent == "false" %}
+                            {% assign checkPubFreeConsent = "false"  %}
+                          <!-- If marketing_consent_post_services is set to true check attribute -->
+                          {% elsif pubFreeConsent == "true" %}
+                            {% assign checkPubFreeConsent = "true"  %}
+                          <!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+                          {% elsif pubFreeConsent != "true" and pubFreeConsent != "false" %}
+                            {% if activeLists contains '{Do_not_promote_list_code}' %} {% assign checkPubFreeConsent = "false"  %} {% else %} {% assign checkPubFreeConsent = "true"  %} {% endif %}
+                          <!-- By default uncheck attribute -->
+                          {% else %}
+                            {% assign checkPubFreeConsent = "false"  %}
+                          {% endif %}
+
+                          {% assign pubFreeConsentAttr = pubStripped | append: "_FREE"  %}
+                          {% if checkPubFreeConsent == "false" %}
+                            {% assign pubFreeConsentAttr = pubStripped | append: "_FREE_OFF"  %}
+                          {% else %}
+                            {% assign activeEmailConsent = "true"  %}
+                          {% endif %}
+
+                          <!-- Check for OTHER pubs -->
+                          {% assign pubOtherConsent = user.extended_attributes[pubOther]  %}
+                          <!-- If marketing_consent_post is set to false uncheck attribute -->
+                          {% if emailConsent == "false" %}
+                            {% assign checkPubOtherConsent = "false"  %}
+                          <!-- If marketing_consent_post_services is set to true check attribute -->
+                          {% elsif pubOtherConsent == "true" %}
+                            {% assign checkPubOtherConsent = "true"  %}
+                          <!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+                          {% elsif pubOtherConsent != "true" and pubOtherConsent != "false" %}
+                            {% if activeLists contains '{Do_not_promote_list_code}' %} {% assign checkPubOtherConsent = "false"  %} {% else %} {% assign checkPubOtherConsent = "true"  %} {% endif %}
+                          <!-- By default uncheck attribute -->
+                          {% else %}
+                            {% assign checkPubOtherConsent = "false"  %}
+                          {% endif %}
+
+                          {% assign pubOtherConsentAttr = pubStripped | append: "_OTHER"  %}{% if checkPubOtherConsent == "false" %}{% assign pubOtherConsentAttr = pubStripped | append: "_OTHER_OFF"  %}{% else %}{% assign activeEmailConsent = "true"  %}{% endif %}
+
+                          <div class="pub-wrap">
+                              <div class="pub-image border">
+                                <img src="{{ pubLogos[pubCodePos] }}" alt="{{ pubNames[pubCodePos] }}">
+                              </div>
+                              <div class="pub-inner">
+                                <div class="container">
+                                  <div class="row">
+                                    <div class="col-sm-9 col-md-10 pub-label">
+                                      <span>I'd like to receive special renewal and upgrade offers about this publication</span>
+                                    </div>
+                                    <div class="col-sm-3 col-md-2">
+                                      <div class="custom-control custom-switch switch-all">
+                                        
+                                        <input
+                                          type="checkbox"
+                                          class="custom-control-input"
+                                          id="{{pubFree}}"
+                                          value="true"
+                                          {% if checkPubFreeConsent == "true" %}checked="checked"{% endif %}
+                                               name="user[extended_attributes][{{pubFreeConsentAttr}}]"
+                                          >
+                                              <label
+                                            class="custom-control-label"
+                                            for="{{ pubFree }}"
+                                          >{% if checkPubFreeConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                                          {% if checkPubFreeConsent == "false" %}
+                                            <input type="hidden" class="false-control" value="false" name="user[extended_attributes][{{pubFree}}]">
+                                          {% endif %}
+                                        </div>
+                                    </div>
+                                  </div><!-- end of row -->
+                                  <div class="row">
+                                    <div class="col-sm-9 col-md-10 pub-label">
+                                      <span>I'd like to receive special offers on other products via this publication</span>
+                                    </div>
+                                    <div class="col-sm-3 col-md-2">
+                                      <div class="custom-control custom-switch switch-all">
+                                        <input
+                                          type="checkbox"
+                                          class="custom-control-input"
+                                          id="{{ pubOther }}"
+                                          value="true"
+                                          {% if checkPubOtherConsent == "true" %}checked="checked"{% endif %}
+                                               name="user[extended_attributes][{{pubOtherConsentAttr}}]"
+                                          >
+                                              <label
+                                            class="custom-control-label"
+                                            for="{{ pubOther }}"
+                                          >{% if checkPubOtherConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                                          {% if checkPubOtherConsent == "false" %}
+                                            <input type="hidden" class="false-control" value="false" name="user[extended_attributes][{{pubOther}}]">
+                                          {% endif %}
+                                        </div>
+                                    </div>
+                                  </div><!-- end of row -->
+                                </div><!-- end of container -->
+                              </div>
+                            </div>
+                        {% endif %}
+                        {% assign pubCodePos = pubCodePos | plus: 1 %}
+                  {% endfor %}
+              </div><!-- end of form-group -->
+          </div><!-- end of preference-section -->
+      {% endif %}
+      <!-- End Your Subscriptions -->
+
+      <!-- Start Free Events -->
+      {% if activeLists.size > 0 %}
+
+      {% assign showFreeEvents = "false"  %}
+      {% for eventCode in activeLists %}
+            {% assign eventCodeTrim = eventCode | strip %}
+            {% if eventCodeTrim contains 'FREE' %}
+              {% assign showFreeEvents = "true"  %}
+            {% endif %}
+      {% endfor %}
+            
+      {% if showFreeEvents == "true" %} 
+
+          <div class="preference-section">
+
+              <h3>Your free events</h3>   
+              <div class="panel">       
+                <p>Add additional copy here</p>
+              </div>
+
+              <div class="form-group">
+
+                  {% assign freeEventsPos = 0 %}
+                  {% for freeEventCode in freeEvents %}
+                        {% assign freeEventCodeTrim = freeEventCode | strip %}
+                        {% if activeLists contains freeEventCodeTrim %}
+
+                        <!-- Check for free lists -->
+                        {% assign freeEventConsent = user.extended_attributes[freeEventCodeTrim]  %}
+                        <!-- If marketing_consent_post is set to false uncheck attribute -->
+                        {% if emailConsent == "false" %}
+                          {% assign checkFreeEventConsent = "false"  %}
+                        <!-- If marketing_consent_post_services is set to true check attribute -->
+                        {% elsif freeEventConsent == "true" %}
+                          {% assign checkFreeEventConsent = "true"  %}
+                        <!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+                        {% elsif freeEventConsent != "true" and freeEventConsent != "false" %}
+                          {% if activeLists contains '{Do_not_promote_list_code}' %} {% assign checkFreeEventConsent = "false"  %} {% else %} {% assign checkFreeEventConsent = "true"  %} {% endif %}
+                        <!-- By default uncheck attribute -->
+                        {% else %}
+                          {% assign checkFreeEventConsent = "false"  %}
+                        {% endif %}
+
+                        {% assign freeEventConsentAttr = freeEventCodeTrim  %}{% if checkFreeEventConsent == "false" %}{% assign freeEventConsentAttr = freeEventCodeTrim | append: "_OFF"  %}{% else %}{% assign activeEmailConsent = "true"  %}{% endif %}
+
+                          <div class="pub-wrap">
+
+                            <div class="pub-image border">
+                              <img src="{{freeEventLogos[freeEventsPos]}}" alt="{{freeEventNames[freeEventsPos]}}">
+                            </div>
+
+                            <div class="pub-inner">
+                              <div class="container">
+                                <div class="row">
+                                  <div class="col-sm-9 col-md-10 pub-label">
+                                    <span>I'd like to receive updates about this online event via email</span>
+                                  </div>
+                                  <div class="col-sm-3 col-md-2">
+                                    <div class="custom-control custom-switch switch-all">
+                                      <input
+                                        type="checkbox"
+                                        class="custom-control-input"
+                                        id="{{ freeEventCodeTrim }}"
+                                        value="true"
+                                        {% if checkFreeEventConsent == "true" %}checked="checked"{% endif %}
+                                             name="user[extended_attributes][{{freeEventConsentAttr}}]"
+                                        >
+                                            <label
+                                          class="custom-control-label"
+                                          for="{{ freeEventCodeTrim }}"
+                                        >{% if checkFreeEventConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                                        {% if checkFreeEventConsent == "false" %}
+                                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][{{freeEventCodeTrim}}]">
+                                        {% endif %}
+                                      </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        {% endif %}
+                        {% assign freeEventsPos = freeEventsPos | plus: 1 %}
+                  {% endfor %}
+              </div><!-- end of form-group -->
+          </div><!-- end of preference-section -->
+      {% endif %}
+      {% endif %}
+      <!-- End Free Events -->
+      <div id="active-email-consent" data-email-consent="{{activeEmailConsent}}"></div>
+
+      {% if activeEmailConsent == "false" and emailConsent != "false" and emailConsent != "true"  %}
+        {% assign unsubAllEmails = "true"  %}
+      {% elsif activeEmailConsent == "true" and emailConsent != "false" and emailConsent != "true" %}
+        {% assign unsubAllEmails = "false"  %}
+      {% elsif emailConsent == "false" %}
+        {% assign unsubAllEmails = "true"  %}
+      {% else %}
+        {% assign unsubAllEmails = "false"  %}
+      {% endif %}
+
+      <div class="preference-section">
+
+        <h3>Unsubscribing from all email marketing</h3> 
+        <div class="panel">        
+          <p>If you'd prefer to unsubscribe from all marketing via email, you can use the toggle below. Please note that this will overwrite any actions above.</p>
+        </div>
+
+        <div class="form-group">
+          <div class="pub-wrap">
+            <div class="pub-inner">
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>Please unsubscribe me from all email marketing</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch unsub-emails">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_email"
+                        value="false"
+                        disable 
+                        {% if unsubAllEmails == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][marketing_consent_email]"
+                        >
+                      <label
+                        class="custom-control-label"
+                        for="marketing_consent_email"
+                        >{% if unsubAllEmails == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if unsubAllEmails == "false" %}
+                          <input type="hidden" class="false-control" value="true" name="user[extended_attributes][marketing_consent_email]">
+                        {% endif %}
+                    </div>
+                  </div>
+                </div><!-- end of row -->
+              </div><!-- end of container -->
+            </div><!-- end of pub-inner -->
+          </div><!-- end of pub-wrap -->
+        </div><!-- end of form-group -->
+      </div><!-- end of preference-section -->
+    </div>
+  </div><!-- end of preferences -->
+</div><!-- end of mb-4 -->
+
+<!-- Start of Post Preferences -->  
+<!-- Check for marketing_consent_post_services -->
+{% assign postServicesConsent = user.extended_attributes.marketing_consent_post_services  %}
+<!-- If marketing_consent_post is set to false uncheck attribute -->
+{% if postConsent == "false" %}
+  {% assign checkPostServicesConsent = "false"  %}
+<!-- If marketing_consent_post_services is set to true check attribute -->
+{% elsif postServicesConsent == "true" %}
+  {% assign checkPostServicesConsent = "true"  %}
+<!-- If marketing_consent_post_services is not set, but marketing_consent_post is set, then check attribute -->
+{% elsif postServicesConsent != "true" and postServicesConsent != "false" and postConsent == "true" %}
+  {% assign checkPostServicesConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% else %}
+  {% assign checkPostServicesConsent = "false"  %}
+{% endif %}
+
+{% assign postServicesConsentAttr = "marketing_consent_post_services"  %}{% if checkPostServicesConsent == "false" %}{% assign postServicesConsentAttr = "marketing_consent_post_services_OFF"  %}{% else %}{% assign activePostConsent = "true"  %}{% endif %}
+
+<!-- Check for marketing_consent_post_subscriptions -->
+{% assign postSubscriptionsConsent = user.extended_attributes.marketing_consent_post_subscriptions  %}
+<!-- If marketing_consent_post is set to false uncheck attribute -->
+{% if postConsent == "false" %}
+  {% assign checkPostSubscriptionsConsent = "false"  %}
+<!-- If marketing_consent_post_subscriptions is set to true check attribute -->
+{% elsif postSubscriptionsConsent == "true" %}
+  {% assign checkPostSubscriptionsConsent = "true"  %}
+<!-- If marketing_consent_post_subscriptions is not set, but marketing_consent_post is set, then check attribute -->
+{% elsif postSubscriptionsConsent != "true" and postSubscriptionsConsent != "false" and postConsent == "true" %}
+  {% assign checkPostSubscriptionsConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% else %}
+  {% assign checkPostSubscriptionsConsent = "false"  %}
+{% endif %}
+
+{% assign postSubscriptionsConsentAttr = "marketing_consent_post_subscriptions"  %}{% if checkPostSubscriptionsConsent == "false" %}{% assign postSubscriptionsConsentAttr = "marketing_consent_post_subscriptions_OFF"  %}{% else %}{% assign activePostConsent = "true"  %}{% endif %}
+<!-- Set marketing_consent_post value -->
+{% if user.extended_attributes.marketing_consent_post == "true" %}{% assign postConsentValue = "true"  %}{% elsif checkPostServicesConsent == "true" or checkPostSubscriptionsConsent == "true" %}{% assign postConsentValue = "true"  %}{% else %}{% assign postConsentValue = "false"  %}{% endif %}
+
+<div class="mb-4">
+  <div class="preferences post" data-type="post">
+    <h2>Managing communication via post</h2>
+    <div class="pl-2 pr-2 pt-3 pb-3">
+      <div class="preference-section">
+
+        <div class="panel">        
+          <p>Add additional copy here</p>
+        </div>
+        
+        <div class="form-group">
+          <div class="pub-wrap">
+            <div class="pub-inner">
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>I'd like to receive occasional post about services:</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_post_services"
+                        value="true"
+                        {% if checkPostServicesConsent == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][{{postServicesConsentAttr}}]"
+                        >
+                            <label
+                          class="custom-control-label"
+                          for="marketing_consent_post_services"
+                        >{% if checkPostServicesConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if checkPostServicesConsent == "false" %}
+                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][marketing_consent_post_services]">
+                        {% endif %}
+                      </div>
+                  </div>
+                </div><!-- end of row -->
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>I'd like to receive occasional post about offers:</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_post_subscriptions"
+                        value="true"
+                        {% if checkPostSubscriptionsConsent == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][{{postSubscriptionsConsentAttr}}]"
+                        >
+                            <label
+                          class="custom-control-label"
+                          for="marketing_consent_post_subscriptions"
+                        >{% if checkPostSubscriptionsConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if checkPostSubscriptionsConsent == "false" %}
+                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][marketing_consent_post_subscriptions]">
+                        {% endif %}
+                      </div>
+                  </div>
+                </div><!-- end of row -->
+              </div><!-- end of container -->
+            </div><!-- end of pub-wrap -->
+          </div><!-- end of pub-inner -->
+        </div><!-- end of form-group -->
+      </div><!-- end of preference-section -->
+    </div>
+    <input type="hidden" id="marketing_consent_post" class="false-control" value="{{postConsentValue}}" name="user[extended_attributes][marketing_consent_post]">
+  </div><!-- end of preferences -->
+</div><!-- end of mb-4 -->
+<!-- End of Post Preferences -->
+
+<!-- Start of Phone Preferences -->
+<!-- Check for marketing_consent_phone_services -->
+{% assign phoneServicesConsent = user.extended_attributes.marketing_consent_phone_services  %}
+
+<!-- If marketing_consent_phone is set to false uncheck attribute -->
+{% if phoneConsent == "false" %}
+  {% assign checkPhoneServicesConsent = "false"  %}
+<!-- If marketing_consent_phone_services is set to true check attribute -->
+{% elsif phoneServicesConsent == "true" %}
+  {% assign checkPhoneServicesConsent = "true"  %}
+<!-- If marketing_consent_phone_services is not set, but marketing_consent_phone is set, then check attribute -->
+{% elsif phoneServicesConsent != "true" and phoneServicesConsent != "false" and phoneConsent == "true" %}
+  {% assign checkPhoneServicesConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% else %}
+  {% assign checkPhoneServicesConsent = "false"  %}
+{% endif %}
+
+{% assign phoneServicesConsentAttr = "marketing_consent_phone_services"  %}{% if checkPhoneServicesConsent == "false" %}{% assign phoneServicesConsentAttr = "marketing_consent_phone_services_OFF"  %}{% else %}{% assign activePhoneConsent = "true"  %}{% endif %}
+
+<!-- Check for marketing_consent_phone_subscriptions -->
+{% assign phoneSubscriptionsConsent = user.extended_attributes.marketing_consent_phone_subscriptions  %}
+<!-- If marketing_consent_phone is set to false uncheck attribute -->
+{% if phoneConsent == "false" %}
+  {% assign checkPhoneSubscriptionsConsent = "false"  %}
+<!-- If marketing_consent_phone_subscriptions is set to true check attribute -->
+{% elsif postSubscriptionsConsent == "true" %}
+  {% assign checkPhoneSubscriptionsConsent = "true"  %}
+<!-- If marketing_consent_phone_subscriptions is not set, but marketing_consent_phone is set, then check attribute -->
+{% elsif postSubscriptionsConsent != "true" and postSubscriptionsConsent != "false" and phoneConsent == "true" %}
+  {% assign checkPhoneSubscriptionsConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% else %}
+  {% assign checkPhoneSubscriptionsConsent = "false"  %}
+{% endif %}
+
+{% assign phoneSubscriptionsConsentAttr = "marketing_consent_phone_subscriptions" %}{% if checkPhoneSubscriptionsConsent == "false" %}{% assign phoneSubscriptionsConsentAttr = "marketing_consent_phone_subscriptions_OFF"  %}{% else %}{% assign activePhoneConsent = "true"  %}{% endif %}
+<!-- Set marketing_consent_phone value -->
+{% if user.extended_attributes.marketing_consent_phone == "true" %}{% assign phoneConsentValue = "true"  %}
+{% elsif checkPhoneServicesConsent == "true" or checkPhoneSubscriptionsConsent == "true" %}{% assign phoneConsentValue = "true"  %}{% else %}{% assign phoneConsentValue = "false"  %}{% endif %}
+
+<div class="mb-4">
+  <div class="preferences phone" data-type="phone">
+    <h2>Managing communication via phone</h2>
+    <div class="pl-2 pr-2 pt-3 pb-3">
+      <div class="preference-section">
+        <div class="panel">        
+          <p>Add additional copy here</p>
+        </div>
+        <div class="form-group">
+          <div class="pub-wrap">
+            <div class="pub-inner">
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>I'd like to receive occasional marketing calls about services:</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_phone_services"
+                        value="true"
+                        {% if checkPhoneServicesConsent == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][{{phoneServicesConsentAttr}}]"
+                        >
+                            <label
+                          class="custom-control-label"
+                          for="marketing_consent_phone_services"
+                        >{% if checkPhoneServicesConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if checkPhoneServicesConsent == "false" %}
+                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][marketing_consent_phone_services]">
+                        {% endif %}
+                      </div>
+                  </div>
+                </div><!-- end of row -->
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>I'd like to receive occasional marketing calls about offers:</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_phone_subscriptions"
+                        value="true"
+                        {% if checkPhoneSubscriptionsConsent == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][{{phoneSubscriptionsConsentAttr}}]"
+                        >
+                            <label
+                          class="custom-control-label"
+                          for="marketing_consent_phone_subscriptions"
+                        >{% if checkPhoneSubscriptionsConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if checkPhoneSubscriptionsConsent == "false" %}
+                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][marketing_consent_phone_subscriptions]">
+                        {% endif %}
+                      </div>
+                  </div>
+                </div><!-- end of row -->
+              </div><!-- end of container -->
+            </div><!-- end of pub-wrap -->
+          </div><!-- end of pub-inner -->
+        </div><!-- end of form-group -->
+      </div><!-- end of preference-section -->
+    </div>
+    <input type="hidden" id="marketing_consent_phone" class="false-control" value="{{phoneConsentValue}}" name="user[extended_attributes][marketing_consent_phone]">
+  </div><!-- end of preferences -->
+</div><!-- end of mb-4 -->
+<!-- End of Phone Preferences -->
+
+<!-- Start of Third Party Preferences -->
+<!-- Check for marketing_consent_thirdparty_email -->
+{% assign thirdpartyEmailConsent = user.extended_attributes.marketing_consent_thirdparty_email  %}
+<!-- If marketing_consent_thirdparty is set to false uncheck attribute -->
+{% if thirdpartyConsent == "false" %}
+  {% assign checkThirdpartyEmailConsent = "false"  %}
+<!-- If marketing_consent_thirdparty_email is set to true check attribute -->
+{% elsif thirdpartyEmailConsent == "true" %}
+  {% assign checkThirdpartyEmailConsent = "true"  %}
+<!-- If marketing_consent_thirdparty_email is not set, but marketing_consent_thirdparty is set, then check attribute -->
+{% elsif thirdpartyEmailConsent != "true" and thirdpartyEmailConsent != "false" and thirdpartyConsent == "true" %}
+  {% assign checkThirdpartyEmailConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% else %}
+  {% assign checkThirdpartyEmailConsent = "false"  %}
+{% endif %}
+
+{% assign thirdpartyEmailConsentAttr = "marketing_consent_thirdparty_email"  %}{% if checkThirdpartyEmailConsent == "false" %}{% assign thirdpartyEmailConsentAttr = "marketing_consent_thirdparty_email_OFF"  %}{% else %}{% assign activeThirdpartyConsent = "true" %}{% endif %}
+
+<!-- Check for marketing_consent_thirdparty_phone -->
+{% assign thirdpartyPhoneConsent = user.extended_attributes.marketing_consent_thirdparty_phone  %}
+<!-- If marketing_consent_thirdparty is set to false uncheck attribute -->
+{% if thirdpartyConsent == "false" %}
+  {% assign checkThirdpartyPhoneConsent = "false"  %}
+<!-- If marketing_consent_thirdparty_phone is set to true check attribute -->
+{% elsif thirdpartyPhoneConsent == "true" %}
+  {% assign checkThirdpartyPhoneConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% elsif thirdpartyPhoneConsent != "true" and thirdpartyPhoneConsent != "false" and thirdpartyConsent == "true" %}
+  {% assign checkThirdpartyPhoneConsent = "true"  %}
+<!-- By default uncheck attribute -->
+{% else %}
+  {% assign checkThirdpartyPhoneConsent = "false"  %}
+{% endif %}
+
+{% assign thirdpartyPhoneConsentAttr = "marketing_consent_thirdparty_phone"  %}{% if checkThirdpartyPhoneConsent == "false" %}{% assign thirdpartyPhoneConsentAttr = "marketing_consent_thirdparty_phone_OFF"  %}{% else %}{% assign activeThirdpartyConsent = "true"  %}{% endif %}
+
+<!-- Set marketing_consent_thirdparty value -->
+{% if user.extended_attributes.marketing_consent_thirdparty == "true" %}{% assign thirdpartyConsentValue = "true"  %}
+{% elsif checkThirdpartyEmailConsent == "true" or checkThirdpartyPhoneConsent == "true" %}{% assign thirdpartyConsentValue = "true"  %}{% else %}{% assign thirdpartyConsentValue = "false"  %}{% endif %}
+
+<div class="mb-4">
+  <div class="preferences thirdparty" data-type="thirdparty">
+    <h2>Managing marketing from carefully selected third parties</h2>
+    <div class="pl-2 pr-2 pt-3 pb-3">
+      <div class="preference-section">
+        <div class="panel">        
+          <p>Add additional copy here</p>
+        </div>
+        <div class="form-group">
+          <div class="pub-wrap">
+            <div class="pub-inner">
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>I'd like to receive special offers from trusted partners by email:</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_thirdparty_email"
+                        value="true"
+                        {% if checkThirdpartyEmailConsent == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][{{thirdpartyEmailConsentAttr}}]"
+                        >
+                            <label
+                          class="custom-control-label"
+                          for="marketing_consent_thirdparty_email"
+                        >{% if checkThirdpartyEmailConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if checkThirdpartyEmailConsent == "false" %}
+                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][marketing_consent_thirdparty_email]">
+                        {% endif %}
+                      </div>
+                  </div>
+                </div><!-- end of row -->
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>I'd like to receive special offers from trusted partners by phone:</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="marketing_consent_thirdparty_phone"
+                        value="true"
+                        {% if checkThirdpartyPhoneConsent == "true" %}checked="checked"{% endif %}
+                             name="user[extended_attributes][{{thirdpartyPhoneConsentAttr}}]"
+                        >
+                            <label
+                          class="custom-control-label"
+                          for="marketing_consent_thirdparty_phone"
+                        >{% if checkThirdpartyPhoneConsent == "true" %}Yes{% else %}No{% endif %}</label>
+                        {% if checkThirdpartyPhoneConsent == "false" %}
+                          <input type="hidden" class="false-control" value="false" name="user[extended_attributes][marketing_consent_thirdparty_phone]">
+                        {% endif %}
+                      </div>
+                  </div>
+                </div><!-- end of row -->
+              </div><!-- end of container -->
+            </div><!-- end of pub-wrap -->
+          </div><!-- end of pub-inner -->
+        </div><!-- end of form-group -->
+      </div><!-- end of preference-section -->
+    </div>
+    <input type="hidden" id="marketing_consent_thirdparty" class="false-control" value="{{thirdpartyConsentValue}}" name="user[extended_attributes][marketing_consent_thirdparty]">
+  </div><!-- end of preferences -->
+</div><!-- end of mb-4 -->
+<!-- End of Third Party Preferences -->
+
+<div class="preference-section">
+        <h3>Unsubscribing from all marketing</h3> 
+        <div class="panel">        
+          <p>If you'd prefer to unsubscribe from all marketing, you can use the toggle below. Please note that this will overwrite any actions above.</p>
+        </div>
+        <div class="form-group">
+          <div class="pub-wrap">
+            <div class="pub-inner">
+              <div class="container">
+                <div class="row">
+                  <div class="col-sm-9 col-md-10 pub-label">
+                    <span>Please unsubscribe me from all marketing</span>
+                  </div>
+                  <div class="col-sm-3 col-md-2">
+                    <div class="custom-control custom-switch unsub">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="unsubscribed"
+                        value="true"
+                        {% if user.unsubscribed == true %}checked="checked"{% endif %}
+                        name="user[unsubscribed]"
+                        >
+                      <label
+                        class="custom-control-label"
+                        for="unsubscribed"
+                        >{% if user.unsubscribed == true %}Yes{% else %}No{% endif %}</label>
+                    </div>
+                  </div>
+                </div><!-- end of row -->
+              </div><!-- end of container -->
+            </div><!-- end of pub-inner -->
+          </div><!-- end of pub-wrap -->
+        </div><!-- end of form-group -->
+      </div><!-- end of preference-section -->
+<div class="update-preferences">
+<div>
+  <input style="float:right;" 
+    class="btn btn-primary mb-1"
+    type="submit"
+    value="Update Preferences"
+  />
+</div>
+</div>
+{% endform %}
+<!--<button id="cancel" class="alert alert-warning" role="alert">Cancel</button>-->
+<div style="clear: both;"></div>
+<hr>
+{% form %}
+
+{% endform %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
